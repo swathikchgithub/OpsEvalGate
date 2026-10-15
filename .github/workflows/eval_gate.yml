@@ -3,6 +3,8 @@ name: OpsEvalGate Evaluation & CI Gate
 on:
   pull_request:
     branches: [ main ]
+  push:
+    branches: [ main ]
   workflow_dispatch:
 
 permissions:
@@ -12,7 +14,7 @@ permissions:
 jobs:
   eval-gate:
     name: Run Unit Tests & Evaluation Gate
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
 
     steps:
       - name: Check out repository
