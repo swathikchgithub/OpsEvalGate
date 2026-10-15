@@ -1,7 +1,7 @@
 # OpsEvalGate
 
 [![CI Eval Gate](https://github.com/swathikchgithub/OpsEvalGate/actions/workflows/eval_gate.yml/badge.svg)](https://github.com/swathikchgithub/OpsEvalGate/actions/workflows/eval_gate.yml)
-[![Tests](https://img.shields.io/badge/tests-69%2F69%20passing-brightgreen)](tests/)
+[![Tests](https://img.shields.io/badge/tests-102%2F102%20passing-brightgreen)](tests/)
 [![Python 3.9+](https://img.shields.io/badge/python-3.9%2B-blue.svg)](https://www.python.org/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
@@ -26,6 +26,7 @@ opsevalgate/
 ├── .github/workflows/
 │   └── eval_gate.yml          # GitHub Actions PR evaluation gate
 ├── agent_core.py              # ReAct agent loop, tool execution & registry
+├── approval_gate.py           # Human-in-the-loop approval gate for destructive tools
 ├── tracer.py                  # OpenInference trace decorator & context manager
 ├── run_adversarial_demo.py    # Live attack simulation runner
 ├── scripts/
@@ -36,5 +37,5 @@ opsevalgate/
 │   ├── eval_gate.py           # Regression gate logic & delta calculation
 │   ├── runner.py              # Batch scenario evaluation harness
 │   └── scenario_generator.py  # Synthetic incident scenario engine
-├── tests/                     # 69-test comprehensive pytest test suite
+├── tests/                     # 102-test comprehensive pytest test suite
 └── docs/                      # Architectural, design, PRD, and workflow specs

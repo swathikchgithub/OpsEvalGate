@@ -15,7 +15,7 @@ Ordered by priority. Check items off as they land.
 
 ## P1: security and correctness
 
-- [ ] Add a human-approval gate for destructive tools (`kill_db_process`)
+- [x] Add a human-approval gate for destructive tools (`approval_gate.py`; wired into the eval runner, NOT yet into `ReActAgent` defaults or the live demos)
 - [ ] Tighten `SHELL_INJECTION_PATTERNS`: reduce false positives (`--`, `;`) and cover bypasses (newlines, `$IFS`, URL-encoding)
 - [ ] Sanitize tool observations (log content) before they enter the scratchpad (indirect prompt injection)
 - [ ] Cap repeated `BLOCKED` attempts in the agent loop

@@ -9,6 +9,7 @@ import os
 from typing import Any, Callable, Dict, List, Optional, Sequence
 
 from agent_core import ReActAgent
+from approval_gate import ApprovalGate, Approver, SandboxAutoApprover
 from evals.evaluators.deterministic import DeterministicGuards
 from evals.evaluators.llm_judge import LLMJudge
 from evals.evaluators.trajectory_metrics import TrajectoryMetricsEvaluator
@@ -62,9 +63,12 @@ class EvaluationRunner:
       self,
       trace_output_dir: Optional[str] = "artifacts/eval_traces",
       planner_factory: Callable[[Sequence[str]], Callable] = PlaybookPlanner,
+      approver: Optional[Approver] = None,
   ):
     self.trace_output_dir = trace_output_dir
     self.planner_factory = planner_factory
+    # Every eval run is against an isolated in-memory mock environment.
+    self.approver = approver or SandboxAutoApprover()
     self.det_guards = DeterministicGuards()
     self.traj_evaluator = TrajectoryMetricsEvaluator()
     self.judge = LLMJudge()
@@ -73,7 +77,7 @@ class EvaluationRunner:
     GLOBAL_TRACER.clear()
 
     with MockEnvironmentFactory.sandbox(scenario) as env:
-      bound_tools = env.get_bound_tools()
+      bound_tools = ApprovalGate(self.approver).wrap_all(env.get_bound_tools())
       self.det_guards.tool_registry = bound_tools
 
       services = sorted({e["service"] for e in env.logs if "service" in e})
