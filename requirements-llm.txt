@@ -1,0 +1,4 @@
+# Optional: live LLM provider SDKs (evals/clients.py imports these lazily).
+# Install with: pip install -r requirements.txt -r requirements-llm.txt
+anthropic==0.125.0
+openai==2.48.0

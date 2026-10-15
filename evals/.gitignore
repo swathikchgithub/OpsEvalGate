@@ -1,0 +1,42 @@
+# Environment & Secrets
+.env
+.env.*
+!.env.example
+
+# Python Bytecode & Cache
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+
+# Virtual Environments
+.venv/
+venv/
+ENV/
+env/
+
+# Pytest & Coverage
+.pytest_cache/
+.coverage
+htmlcov/
+*.coverage.*
+
+# OpsEvalGate CI / Run Artifacts
+artifacts/ci_traces/
+artifacts/eval_traces/
+artifacts/golden_runs/
+artifacts/failure_cases/
+candidate_metrics.json
+baseline_metrics.json
+# The stored CI baseline is committed on purpose (see scripts/run_ci_gate.py)
+!baselines/baseline_metrics.json
+pr_gate_comment.md
+gate_report.md
+*.zip
+
+# IDE & Editor Specific
+.vscode/
+.idea/
+*.swp
+*.swo
+.DS_Store

@@ -1,0 +1,56 @@
+name: OpsEvalGate Evaluation & CI Gate
+
+on:
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  eval-gate:
+    name: Run Unit Tests & Evaluation Gate
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.9
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.9"
+          cache: "pip"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Run Pytest Suite
+        run: |
+          pytest tests/ -v
+
+      - name: Run Evaluation Gate & Quality Benchmark
+        env:
+          PYTHONPATH: .
+        run: |
+          python scripts/run_ci_gate.py
+
+      - name: Append Report to GitHub Job Summary
+        if: always()
+        run: |
+          if [ -f pr_gate_comment.md ]; then
+            cat pr_gate_comment.md >> $GITHUB_STEP_SUMMARY
+          fi
+
+      - name: Post or Update Sticky PR Evaluation Comment
+        uses: peter-evans/create-or-update-comment@v4
+        if: github.event_name == 'pull_request' && always()
+        with:
+          issue-number: ${{ github.event.pull_request.number }}
+          body-path: pr_gate_comment.md
+          comment-author: 'github-actions[bot]'
+          edit-mode: replace
