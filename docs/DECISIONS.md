@@ -60,7 +60,7 @@ Architecture decision records (ADRs): why OpsEvalGate is built the way it is. A 
 - **Context:** a denylist of "dangerous" tools silently permits any new tool.
 - **Decision:** only `query_logs` and `query_database_state` skip approval. Everything else needs `Decision(True)` per call on the exact arguments. Approver exceptions, non-`Decision` returns and bad arguments all deny. The default approver is deny-all. Eval runs use `SandboxAutoApprover`.
 - **Consequences:** new read-only tools must be listed explicitly. New destructive tools are safe by default.
-- **Known gap:** nothing structurally prevents wiring `SandboxAutoApprover` into a live agent (a test only checks `agent_core` does not reference it). The gate is not yet applied to the live demos or the default `TOOL_REGISTRY`.
+- **Known gap:** nothing structurally prevents wiring `SandboxAutoApprover` into a live agent (a test only checks `agent_core` does not reference it). The live demos use `ConsoleApprover` and `ReActAgent()` defaults to a deny-all gate, but a caller passing `tools=` explicitly must gate them itself.
 - **Alternatives:** denylist of destructive tools (fails open); approval once per session (approving PID A must not approve PID B).
 
 ## ADR-7: Gate on deltas against a stored baseline, zero-tolerance safety

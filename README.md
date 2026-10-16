@@ -1,6 +1,7 @@
 # OpsEvalGate
 
 [![CI Eval Gate](https://github.com/swathikchgithub/OpsEvalGate/actions/workflows/eval_gate.yml/badge.svg)](https://github.com/swathikchgithub/OpsEvalGate/actions/workflows/eval_gate.yml)
+[![Tests](https://img.shields.io/badge/tests-108%2F108%20passing-brightgreen)](tests/)
 [![Python 3.9+](https://img.shields.io/badge/python-3.9%2B-blue.svg)](https://www.python.org/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
@@ -42,7 +43,7 @@ python run_live_demo.py
 python run_adversarial_demo.py
 ```
 
-> The live demos currently run **without** the approval gate. Do not point them at anything real. See [Known limitations](#known-limitations).
+> The live demos ask for terminal approval (`ConsoleApprover`) before any destructive tool call, and tools still act on in-memory mocks. They send incident text to the model provider using your keys.
 
 ## How the CI gate works
 
@@ -107,7 +108,7 @@ docs/                    PRD, architecture, decisions, design, TDD, test-first w
 
 ## Known limitations
 
-- The agent's default tool registry (`agent_core.TOOL_REGISTRY`) is a global mutable mock and is **not** approval-gated; only the eval runner applies the gate.
+- The mock tools in `agent_core` mutate module-level state (`MOCK_DATABASE`), so runs outside the eval runner are not isolated. `ReActAgent()` with no `tools=` denies destructive calls by default, but a caller that passes `tools=` explicitly must gate them itself.
 - Guardrail regexes are heuristic: some false positives (`--`, `;`) and known bypasses (newlines, `$IFS`, URL-encoding).
 - Tool output (e.g. log lines) is not yet sanitized before it enters the prompt, so indirect prompt injection is **not** mitigated.
 - The scenario catalog has two incident types; the baseline covers 10 scenarios.

@@ -5,6 +5,7 @@ from __future__ import annotations
 import inspect
 import json
 from typing import Any, Callable, Dict, List, Optional
+from approval_gate import ApprovalGate
 from tracer import trace_span
 
 # ---------------------------------------------------------------------------
@@ -132,7 +133,8 @@ class ReActAgent:
       model_client: Optional[Callable[..., Dict[str, Any]]] = None,
       max_iterations: int = 5,
   ):
-    self.tools = tools or TOOL_REGISTRY
+    # Fail closed: with no explicit tools, destructive ones are denied.
+    self.tools = tools or ApprovalGate().wrap_all(TOOL_REGISTRY)
     self.model_client = model_client or self._mock_model_planner
     self.max_iterations = max_iterations
 

@@ -7,6 +7,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 from agent_core import ReActAgent, TOOL_REGISTRY
+from approval_gate import ApprovalGate, ConsoleApprover
 from evals.clients import AnthropicClientAdapter, OpenAIClientAdapter
 from evals.evaluators.llm_judge import LLMJudge
 from tracer import GLOBAL_TRACER
@@ -43,10 +44,12 @@ def run_live(preferred_provider: str = "auto"):
             "Please ensure ANTHROPIC_API_KEY or OPENAI_API_KEY is defined in .env"
         )
 
-    # 1. Wire live planner into ReActAgent
-    planner = adapter.create_agent_planner(tool_registry=TOOL_REGISTRY)
+    # 1. Wire live planner into ReActAgent. A human approves each destructive
+    # call at the terminal; read-only tools run unattended.
+    gated_tools = ApprovalGate(ConsoleApprover()).wrap_all(TOOL_REGISTRY)
+    planner = adapter.create_agent_planner(tool_registry=gated_tools)
     agent = ReActAgent(
-        tools=TOOL_REGISTRY, model_client=planner, max_iterations=6
+        tools=gated_tools, model_client=planner, max_iterations=6
     )
 
     incident = (

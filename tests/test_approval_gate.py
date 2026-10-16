@@ -1,6 +1,7 @@
 """tests/test_approval_gate.py - Human-in-the-loop approval for destructive tool calls."""
 
 import inspect
+from pathlib import Path
 
 import pytest
 
@@ -251,6 +252,46 @@ def test_deny_all_approver_denies():
 
 def test_sandbox_auto_approver_is_not_referenced_by_agent_core():
   assert "SandboxAutoApprover" not in inspect.getsource(agent_core)
+
+
+def test_default_agent_tools_deny_the_destructive_kill():
+  tools = ReActAgent().tools
+
+  result = tools["kill_db_process"](pid=8492)
+
+  assert result["status"] == "APPROVAL_DENIED"
+
+
+def test_default_agent_denied_kill_leaves_global_mock_state_untouched():
+  rows = agent_core.MOCK_DATABASE["pg_stat_activity"]
+  before = [dict(r) for r in rows]
+
+  ReActAgent().tools["kill_db_process"](pid=8492)
+
+  assert rows == before
+
+
+def test_default_agent_tools_still_allow_read_only_queries():
+  tools = ReActAgent().tools
+
+  rows = tools["query_database_state"]("pg_stat_activity")
+
+  assert len(rows) > 0
+
+
+def test_explicit_tools_are_used_exactly_as_given():
+  custom = {"ping": lambda: "pong"}
+
+  agent = ReActAgent(tools=custom)
+
+  assert agent.tools is custom
+
+
+@pytest.mark.parametrize("script", ["run_live_demo.py", "run_adversarial_demo.py"])
+def test_live_demo_scripts_route_tools_through_the_approval_gate(script):
+  source = (Path(__file__).resolve().parent.parent / script).read_text()
+
+  assert "ApprovalGate(" in source
 
 
 @pytest.mark.parametrize("answer", ["y", "Y", "yes", " YES "])

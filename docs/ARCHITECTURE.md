@@ -75,7 +75,7 @@ One GitHub Actions job on `ubuntu-24.04`, Python 3.9, triggered on pull requests
 
 ## 6. Known architectural gaps
 
-- The default `TOOL_REGISTRY` is a global mutable mock and is ungated; live demos build the agent without the approval gate.
+- The mock tools in `agent_core` mutate module-level state (`MOCK_DATABASE`, `MOCK_LOGS`). A caller that passes `tools=` explicitly to `ReActAgent` chooses its own gating; only the no-argument default is deny-all.
 - Observations are not sanitized before entering the scratchpad.
 - Global tracer and module-level mock state prevent parallel runs.
 - No timeout or token/cost cap on a run; approvers are synchronous with no timeout.

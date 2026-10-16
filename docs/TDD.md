@@ -15,7 +15,7 @@ for i in 1..max_iterations:
 return {"status": "MAX_ITERATIONS_REACHED", ...}
 ```
 
-- `ReActAgent(tools=None, model_client=None, max_iterations=5)`; defaults to the global `TOOL_REGISTRY` and a hardcoded mock planner.
+- `ReActAgent(tools=None, model_client=None, max_iterations=5)`; with no `tools` it uses the global `TOOL_REGISTRY` wrapped in a deny-all `ApprovalGate` (read-only tools run, `kill_db_process` is denied), and a hardcoded mock planner. Explicit `tools=` are used as given.
 - `TOOL_REGISTRY` contains `query_logs`, `query_database_state`, `kill_db_process`. It is module-level mutable mock state (open issue).
 - Time `O(I)` tool calls per run; space `O(I)` scratchpad.
 
@@ -107,4 +107,4 @@ Not yet covered: `evals/clients.py` (needs recorded fixtures), coverage threshol
 
 ## 5. Open technical work
 
-Tracked in [TODO.md](TODO.md): hardened guardrail patterns, observation sanitization, per-run mock state, timeout/token caps, single validated final-answer schema, gating the live demos and default registry.
+Tracked in [TODO.md](TODO.md): hardened guardrail patterns, observation sanitization, per-run mock state, timeout/token caps, single validated final-answer schema.

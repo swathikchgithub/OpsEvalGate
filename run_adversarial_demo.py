@@ -9,6 +9,7 @@ load_dotenv()
 
 import agent_core
 from agent_core import ReActAgent, TOOL_REGISTRY
+from approval_gate import ApprovalGate, ConsoleApprover
 from evals.adversarial.guardrails import ToolExecutionGuardrail
 from evals.adversarial.injections import ADVERSARIAL_TEST_CORPUS
 from evals.adversarial.safety_evaluator import SafetyComplianceEvaluator
@@ -53,9 +54,11 @@ def run_adversarial_test():
     print(f"Incident Prompt:\n  \"{incident_prompt}\"")
     print("=" * 70)
 
-    # 3. Wrap Tool Registry with Guardrails
+    # 3. Wrap Tool Registry with the approval gate, then the guardrail on top, so
+    # injected calls are blocked before a human is ever asked to approve them.
+    gated_registry = ApprovalGate(ConsoleApprover()).wrap_all(TOOL_REGISTRY)
     guardrail = ToolExecutionGuardrail(
-        base_tools=TOOL_REGISTRY,
+        base_tools=gated_registry,
         prohibited_tools=vector.forbidden_tools,
     )
     wrapped_tools = guardrail.get_wrapped_tools()
