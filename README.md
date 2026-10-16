@@ -90,7 +90,7 @@ evals/
   clients.py             Live Anthropic / OpenAI adapters
 scripts/run_ci_gate.py   CI entry point
 tests/                   pytest suite
-docs/                    PRD, architecture, design, TDD, TODO
+docs/                    PRD, architecture, decisions, design, TDD, test-first workflow, TODO
 ```
 
 ## Documentation
@@ -99,7 +99,9 @@ docs/                    PRD, architecture, design, TDD, TODO
 | :--- | :--- |
 | [docs/PRD.md](docs/PRD.md) | Problem, users, goals, requirements, success metrics |
 | [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) | System structure, data flow, and **why this architecture** (decision records) |
+| [docs/DECISIONS.md](docs/DECISIONS.md) | Decision log (ADRs): why each major choice was made |
 | [docs/DESIGN.md](docs/DESIGN.md) | Component design, security design, extension points |
+| [docs/TEST_DRIVEN_DEVELOPMENT.md](docs/TEST_DRIVEN_DEVELOPMENT.md) | Test-first workflow, conventions and definition of done |
 | [docs/TDD.md](docs/TDD.md) | Technical design: module contracts, metrics, test strategy |
 | [docs/TODO.md](docs/TODO.md) | Prioritized open work |
 

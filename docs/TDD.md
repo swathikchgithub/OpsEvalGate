@@ -86,6 +86,8 @@ Metrics (all in `[0, 1]` except latency):
 
 ## 3. Test strategy
 
+Workflow and conventions (red, green, refactor): [TEST_DRIVEN_DEVELOPMENT.md](TEST_DRIVEN_DEVELOPMENT.md).
+
 Suite: `pytest` (config in `pytest.ini`, markers `unit`, `integration`, `eval`). Counts are not hardcoded here; run `pytest --collect-only -q`.
 
 | Layer | Examples | Notes |
