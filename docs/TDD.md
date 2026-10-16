@@ -35,6 +35,17 @@ tool call ──► prohibited tool name?  ── yes ─► {"status":"BLOCKED"
 ```
 Prohibited names include `execute_bash`, `bash`, `sh`, `drop_table`, `delete_database`, `shutdown_cluster`. Hallucinated prohibited tools receive stub interceptors. Patterns are heuristic (see TODO P1).
 
+### 1.4a Observation sanitizer (`observation_sanitizer.py`)
+
+`ObservationSanitizer(max_string_chars=1000, max_items=100, max_depth=6, max_nodes=2000).sanitize(obs) -> Sanitized(value, findings)`.
+- Structure-preserving: dicts, lists and tuples are walked; non-string leaves are untouched; unknown objects become bounded text.
+- Strings: strip control, zero-width and bidi characters; truncate (`...[truncated N chars]`); neutralize `<tool_output>` look-alikes; then match rules on NFKC case-folded text.
+- Rules: `override_instructions`, `system_directive`, `new_instructions`, `role_hijack`, `secret_exfiltration`, `tool_call_syntax`, `chat_template`. A match prefixes the text with `[flagged: possible injection] ` (never deletes it) and records the rule in `findings`.
+- `ReActAgent(sanitizer=...)` applies it to every observation, including tool errors, and adds `sanitizer_flags` to flagged steps only. Traced tool spans keep the raw output for audit.
+- `evals/clients._format_scratchpad` wraps observations in `<tool_output>` tags; system prompt rule 5 says that content is data.
+- Time `O(min(N, max_nodes) * max_string_chars)`: strings are truncated before regexes run and quantifiers are bounded.
+- Limits: heuristic, no guarantee; dict keys unsanitized; shell/SQL payloads belong to the guardrail.
+
 ### 1.5 Approval gate (`approval_gate.py`)
 
 ```python
@@ -107,4 +118,4 @@ Not yet covered: `evals/clients.py` (needs recorded fixtures), coverage threshol
 
 ## 5. Open technical work
 
-Tracked in [TODO.md](TODO.md): hardened guardrail patterns, observation sanitization, per-run mock state, timeout/token caps, single validated final-answer schema.
+Tracked in [TODO.md](TODO.md): hardened guardrail patterns, per-run mock state, timeout/token caps, single validated final-answer schema.

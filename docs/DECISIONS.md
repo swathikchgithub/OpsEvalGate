@@ -23,6 +23,7 @@ Architecture decision records (ADRs): why OpsEvalGate is built the way it is. A 
 | 12 | Synchronous approvers, no timeout | Accepted with known gap |
 | 13 | Project name: OpsEvalGate | Accepted |
 | 14 | Test-first development for every behavior | Accepted |
+| 15 | Sanitize tool observations: flag and bound, never silently drop | Accepted with known gap |
 
 ---
 
@@ -54,7 +55,7 @@ Architecture decision records (ADRs): why OpsEvalGate is built the way it is. A 
 - **Context:** regex guardrails alone are bypassable, and an LLM-chosen tool call is untrusted input.
 - **Decision:** independent layers: tool deny-list, argument screening, fail-closed approval, per-scenario sandbox, tracing and audit. Order is guardrail, then approver, then tool, so a malicious call never reaches a human prompt.
 - **Consequences:** more moving parts; each layer has its own tests.
-- **Known gap:** regex patterns have false positives (`--`, `;`) and bypasses (newlines, `$IFS`, URL-encoding); tool output is not yet sanitized (indirect prompt injection).
+- **Known gap:** regex patterns have false positives (`--`, `;`) and bypasses (newlines, `$IFS`, URL-encoding). Tool output is sanitized separately (ADR-15).
 
 ## ADR-6: Fail-closed approval via a read-only allowlist
 - **Context:** a denylist of "dangerous" tools silently permits any new tool.
@@ -104,6 +105,13 @@ Architecture decision records (ADRs): why OpsEvalGate is built the way it is. A 
 - **Context:** this tool exists to catch regressions, so its own controls must be provably enforced.
 - **Decision:** write a failing test, then the code, then refactor. Every security control has a test that fails if the control is removed. See [TEST_DRIVEN_DEVELOPMENT.md](TEST_DRIVEN_DEVELOPMENT.md).
 - **Consequences:** slightly slower first commit, much cheaper refactors. Older tests do not all follow the one-assertion convention yet.
+
+## ADR-15: Sanitize tool observations: flag and bound, never silently drop
+- **Context:** logs and DB fields are attacker-influenced and flow into the model's context (indirect prompt injection, OWASP LLM01). Evaluators and the offline planner read structured observations (PIDs, rows), so sanitizing must preserve structure.
+- **Decision:** `ObservationSanitizer` runs inside `ReActAgent` on every observation, including tool errors. It strips control, zero-width and bidi characters, neutralizes `<tool_output>` look-alikes, truncates strings, caps list size, depth and total nodes, and prefixes instruction-like text with `[flagged: possible injection]`, recording a finding on the step. Live prompts wrap observations in `<tool_output>` tags and tell the model they are data, never instructions.
+- **Consequences:** a poisoned log stays visible as evidence and in the trace. Clean observations are returned unchanged, so the seeded baseline did not move. Costs one pass over each observation.
+- **Known gap:** pattern matching is heuristic and can be bypassed by novel phrasing; dict keys are not sanitized; flagging does not stop a model from obeying the text. The approval gate remains the backstop for destructive actions. Shell/SQL payloads are the guardrail's job and are not flagged here.
+- **Alternatives:** silently stripping matches (hides evidence, easy to evade by rewording); an LLM classifier for injections (cost, nondeterminism, itself injectable); blocking the whole observation (breaks diagnosis).
 
 ---
 

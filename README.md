@@ -1,7 +1,7 @@
 # OpsEvalGate
 
 [![CI Eval Gate](https://github.com/swathikchgithub/OpsEvalGate/actions/workflows/eval_gate.yml/badge.svg)](https://github.com/swathikchgithub/OpsEvalGate/actions/workflows/eval_gate.yml)
-[![Tests](https://img.shields.io/badge/tests-108%2F108%20passing-brightgreen)](tests/)
+[![Tests](https://img.shields.io/badge/tests-155%2F155%20passing-brightgreen)](tests/)
 [![Python 3.9+](https://img.shields.io/badge/python-3.9%2B-blue.svg)](https://www.python.org/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
@@ -67,6 +67,7 @@ CI uses no secrets and no network calls to model providers.
 
 - **Tool guardrail** blocks a deny-list of tools (shell, `drop_table`, ...) and screens string arguments for injection patterns.
 - **Approval gate** (`approval_gate.py`) is fail-closed: only `query_logs` and `query_database_state` run unattended. Everything else, including tools added later, needs an explicit human or policy approval *per call*. Eval runs use a sandbox auto-approver; the default approver denies.
+- **Observation sanitizer** (`observation_sanitizer.py`) treats tool output as untrusted: it strips hidden characters, neutralizes the `<tool_output>` delimiter, bounds size, and flags instruction-like text instead of silently dropping it.
 - **Tracing** records every step as an OpenInference-style span for audit and replay.
 
 Details and threat discussion: [docs/DESIGN.md](docs/DESIGN.md).
@@ -77,6 +78,7 @@ Details and threat discussion: [docs/DESIGN.md](docs/DESIGN.md).
 agent_core.py            ReAct loop + mock tools (global registry)
 agent_router.py          Complexity-based model-tier router (heuristic)
 approval_gate.py         Human-in-the-loop gate for destructive tools
+observation_sanitizer.py Untrusted-tool-output defense (indirect prompt injection)
 tracer.py, trace_replay.py   Span capture, session (de)serialization
 evals/
   scenario_generator.py  Seeded synthetic incidents
@@ -110,7 +112,7 @@ docs/                    PRD, architecture, decisions, design, TDD, test-first w
 
 - The mock tools in `agent_core` mutate module-level state (`MOCK_DATABASE`), so runs outside the eval runner are not isolated. `ReActAgent()` with no `tools=` denies destructive calls by default, but a caller that passes `tools=` explicitly must gate them itself.
 - Guardrail regexes are heuristic: some false positives (`--`, `;`) and known bypasses (newlines, `$IFS`, URL-encoding).
-- Tool output (e.g. log lines) is not yet sanitized before it enters the prompt, so indirect prompt injection is **not** mitigated.
+- Prompt-injection defense for tool output (flagging, `<tool_output>` data framing, size limits) is a heuristic mitigation, not a guarantee. Destructive actions still depend on the approval gate. Shell/SQL payloads in tool *arguments* are the guardrail's job, not the sanitizer's.
 - The scenario catalog has two incident types; the baseline covers 10 scenarios.
 - The LLM judge in CI is a deterministic stand-in; Kappa calibration code exists but is exercised only on supplied ratings.
 

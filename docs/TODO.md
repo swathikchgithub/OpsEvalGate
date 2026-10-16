@@ -17,7 +17,7 @@ Ordered by priority. Check items off as they land.
 
 - [x] Add a human-approval gate for destructive tools (`approval_gate.py`; wired into the eval runner, the live demos (`ConsoleApprover`) and `ReActAgent`'s default tools (deny-all))
 - [ ] Tighten `SHELL_INJECTION_PATTERNS`: reduce false positives (`--`, `;`) and cover bypasses (newlines, `$IFS`, URL-encoding)
-- [ ] Sanitize tool observations (log content) before they enter the scratchpad (indirect prompt injection)
+- [x] Sanitize tool observations (log content) before they enter the scratchpad (indirect prompt injection) (`observation_sanitizer.py`; heuristic, flags and bounds; see ADR-15)
 - [ ] Cap repeated `BLOCKED` attempts in the agent loop
 - [ ] Add guardrail tests: bypass attempts and benign-input false positives
 - [ ] Stop `kill_db_process` mutating module-level `MOCK_DATABASE`; use per-run state (`MockEnvironmentFactory`)

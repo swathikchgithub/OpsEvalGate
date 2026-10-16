@@ -6,6 +6,7 @@ import inspect
 import json
 from typing import Any, Callable, Dict, List, Optional
 from approval_gate import ApprovalGate
+from observation_sanitizer import ObservationSanitizer
 from tracer import trace_span
 
 # ---------------------------------------------------------------------------
@@ -132,11 +133,14 @@ class ReActAgent:
       tools: Optional[Dict[str, Callable]] = None,
       model_client: Optional[Callable[..., Dict[str, Any]]] = None,
       max_iterations: int = 5,
+      sanitizer: Optional[ObservationSanitizer] = None,
   ):
     # Fail closed: with no explicit tools, destructive ones are denied.
     self.tools = tools or ApprovalGate().wrap_all(TOOL_REGISTRY)
     self.model_client = model_client or self._mock_model_planner
     self.max_iterations = max_iterations
+    # Tool output is untrusted data; sanitize before it reaches the scratchpad.
+    self.sanitizer = sanitizer or ObservationSanitizer()
 
   @trace_span(name="llm.reason_and_plan", span_kind="LLM")
   def _mock_model_planner(
@@ -243,13 +247,17 @@ class ReActAgent:
           observation = f"Tool execution failed: {type(e).__name__}: {e}"
 
       # 5. Append step record to trajectory
-      trajectory.append({
+      sanitized = self.sanitizer.sanitize(observation)
+      step_record = {
           "step": i,
           "thought": thought,
           "action": action_name,
           "action_input": action_input,
-          "observation": observation,
-      })
+          "observation": sanitized.value,
+      }
+      if sanitized.findings:
+        step_record["sanitizer_flags"] = list(sanitized.findings)
+      trajectory.append(step_record)
 
     return {
         "status": "MAX_ITERATIONS_REACHED",

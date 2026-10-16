@@ -75,7 +75,7 @@ Teams building LLM agents for incident triage change prompts, tools, guardrails 
 | Offline playbook planner (non-tautological baseline) | Done |
 | Approval gate in eval runner | Done |
 | Approval gate on live demos and default agent tools | Done |
-| Observation sanitization (indirect prompt injection) | Open (P1) |
+| Observation sanitization (indirect prompt injection) | Done (heuristic mitigation) |
 | Hardened guardrail patterns, per-run mock state, run budget | Open (P1) |
 
 Full list: [TODO.md](TODO.md).

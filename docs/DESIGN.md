@@ -47,7 +47,7 @@ Trust boundaries: **the model's output is untrusted**, and so is anything a tool
 | Shell/SQL injection in arguments | A03 | Regex screening in guardrail, validated before approval | Done, heuristic (known bypasses) |
 | Destructive action without a human | A01, A04 | Per-call approval on exact arguments, audit log | Done (eval runner, live demos via console approver, agent default deny-all) |
 | Approver failure grants access | A05 | Exception, non-`Decision` or bad args all deny | Done |
-| Indirect prompt injection via logs | LLM01 | Sanitize observations before scratchpad | **Open** |
+| Indirect prompt injection via logs | LLM01 | Observation sanitizer (hidden-char strip, delimiter neutralization, flag-and-bound) plus `<tool_output>` data framing in the prompt | Mitigated, heuristic |
 | Runaway loops / cost | A04, LLM10 | `max_iterations` cap | Partial (no time/token cap) |
 | Secret leakage | A02 | `.env` git-ignored, no secrets in CI, no keys in prompts | Done |
 | Supply chain | A06, A08 | Pinned requirements; provider SDKs optional | Done (no `pip audit` job yet) |
